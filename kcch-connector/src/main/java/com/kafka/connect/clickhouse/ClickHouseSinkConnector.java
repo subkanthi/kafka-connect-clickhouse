@@ -35,7 +35,9 @@ public class ClickHouseSinkConnector extends SinkConnector {
 
     @Override
     public void start(Map<String, String> props) {
-        // TODO Auto-generated method stub
+        // The following activities need to be done here
+        // 1. Load configuration (Kafka and Clickhouse specific)
+        // 2. Create a connection to Clickhouse.
         
     }
 
