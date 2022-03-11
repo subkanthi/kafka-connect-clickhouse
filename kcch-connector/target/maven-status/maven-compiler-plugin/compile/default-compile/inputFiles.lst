@@ -1,1 +1,8 @@
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/Logging.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/KafkaProviderValidator.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/ClickHouseSinkTask.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/ClickHouseConfigurationVariables.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/KafkaProvider.java
 /Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/ClickHouseSinkConnector.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/TopicToTableValidator.java
+/Users/kanthi/Documents/GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/java/com/kafka/connect/clickhouse/ClickHouseSinkConnectorConfig.java
