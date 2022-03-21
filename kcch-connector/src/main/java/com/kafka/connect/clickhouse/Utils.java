@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
- package com.kafka.connect.clickhouse;
+package com.kafka.connect.clickhouse;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class Utils {
-public Map<String, String> parseTopicToTableMap(String input) {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
+
+  /**
+   * Function to parse the topic to table configuration parameter
+   * @param input Delimiter separated list.
+   * @return key/value pair of configuration.
+   */
+  public static Map<String, String> parseTopicToTableMap(String input) throws Exception {
     Map<String, String> topic2Table = new HashMap<>();
     boolean isInvalid = false;
     for (String str : input.split(",")) {
@@ -30,7 +40,7 @@ public Map<String, String> parseTopicToTableMap(String input) {
         LOGGER.error(
             Logging.logMessage(
                 "Invalid {} config format: {}",
-                SnowflakeSinkConnectorConfig.TOPICS_TABLES_MAP,
+                ClickHouseConfigurationVariables.CLICKHOUSE_TOPICS_TABLES_MAP,
                 input));
         return null;
       }
@@ -38,7 +48,7 @@ public Map<String, String> parseTopicToTableMap(String input) {
       String topic = tt[0].trim();
       String table = tt[1].trim();
 
-      if (!isValidSnowflakeTableName(table)) {
+      if (!isValidTable(table)) {
         LOGGER.error(
             Logging.logMessage(
                 "table name {} should have at least 2 "
@@ -61,8 +71,18 @@ public Map<String, String> parseTopicToTableMap(String input) {
       topic2Table.put(tt[0].trim(), tt[1].trim());
     }
     if (isInvalid) {
-      throw SnowflakeErrors.ERROR_0021.getException();
+      throw new Exception("Invalid clickhouse table");
     }
     return topic2Table;
   }
+
+  /**
+   * Function to valid table name passed in settings
+   * //ToDO: Implement the function.
+   * @return Boolean.
+   */
+  public static boolean isValidTable(String tableName) {
+    return true;
+  }
+
 }
