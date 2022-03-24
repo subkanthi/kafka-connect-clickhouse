@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -14,28 +16,31 @@ import org.apache.kafka.connect.sink.SinkTask;
  */
 public class ClickHouseSinkTask extends SinkTask{
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClickHouseSinkConnector.class);
+
     @Override
     public String version() {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public void start(Map<String, String> props) {
-        // TODO Auto-generated method stub
+        LOGGER.debug("CLICKHOUSE TASK started");
         
     }
 
     @Override
     public void put(Collection<SinkRecord> records) {
-        // TODO Auto-generated method stub
-        
+        LOGGER.debug("CLICKHOUSE received records" + records.size());
+        BufferedRecords br = new BufferedRecords();
+        for (SinkRecord sr: records) {
+            LOGGER.debug("SINK RECORD" + sr.toString());
+
+        }
     }
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-        
+        LOGGER.debug("CLICKHOUSE TASK stopped");
     }
-    
 }

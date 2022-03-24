@@ -17,20 +17,26 @@
 package com.kafka.connect.clickhouse;
 
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Task;
 import org.apache.kafka.connect.sink.SinkConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ClickHouseSinkConnector extends SinkConnector {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClickHouseSinkConnector.class);
+
+    private Map<String, String> config;
     @Override
     public String version() {
-        // TODO Auto-generated method stub
-        return null;
+        return Utils.VERSION;
     }
 
     @Override
@@ -38,19 +44,27 @@ public class ClickHouseSinkConnector extends SinkConnector {
         // The following activities need to be done here
         // 1. Load configuration (Kafka and Clickhouse specific)
         // 2. Create a connection to Clickhouse.
-        
+
+        LOGGER.debug("STARTING CLICKHOUSE SINK CONNECTOR");
+        config = new HashMap<>(props);
     }
 
+    /** @return Sink task class */
     @Override
     public Class<? extends Task> taskClass() {
-        // TODO Auto-generated method stub
-        return null;
+        return ClickHouseSinkTask.class;
     }
 
     @Override
     public List<Map<String, String>> taskConfigs(int maxTasks) {
-        // TODO Auto-generated method stub
-        return null;
+
+        List<Map<String, String>> taskConfigs = new ArrayList<>(maxTasks);
+        for (int i = 0; i < maxTasks; i++) {
+            Map<String, String> conf = new HashMap<>(config);
+            conf.put(Utils.TASK_ID, i + "");
+            taskConfigs.add(conf);
+        }
+        return taskConfigs;
     }
 
     @Override
@@ -61,9 +75,6 @@ public class ClickHouseSinkConnector extends SinkConnector {
 
     @Override
     public ConfigDef config() {
-        // TODO Auto-generated method stub
-        return null;
+        return ClickHouseSinkConnectorConfig.newConfigDef();
     }
-
-    
 }

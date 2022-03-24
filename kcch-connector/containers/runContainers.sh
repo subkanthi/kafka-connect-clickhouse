@@ -19,10 +19,15 @@ docker run --detach --name mysql -p 3306:3306 --env MARIADB_USER=user --env MARI
                                                                                                                                                                --server-id=1 \
                                                                                                                                                                --log-bin=/var/lib/mysql/mysql-bin.log \
                                                                                                                                                                --binlog_do_db=test
+# Set this in mysql prompt
+# set global binlog_format = ROW;
+
+# Run clickhouse local docker image
+docker run -d -p8123:8123 --name clickhouse --ulimit nofile=262144:262144 yandex/clickhouse-server
 
 sleep 5
 
 
 # Start kafka connect standalone
 # copy containers/libs jar files to $KAFKA_CONNECT_ROOT/libs folder.
-./connect-standalone.sh ../config/connect-standalone.properties ../../GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/config/mysql-debezium.properties
+./connect-standalone.sh ../config/connect-standalone.properties ../../GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/config/mysql-debezium.properties ../../GITHUB/kafka-connect-clickhouse/kcch-connector/src/main/config/clickhouse-sink.properties
