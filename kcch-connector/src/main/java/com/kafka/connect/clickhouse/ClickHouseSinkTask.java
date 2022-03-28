@@ -1,8 +1,15 @@
 package com.kafka.connect.clickhouse;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.kafka.connect.clickhouse.converters.ClickHouseConverter;
+import com.kafka.connect.clickhouse.metadata.KafkaSchemaRecordType;
+import org.apache.kafka.connect.data.Field;
+import org.apache.kafka.connect.data.Schema;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.slf4j.Logger;
@@ -33,11 +40,13 @@ public class ClickHouseSinkTask extends SinkTask{
     public void put(Collection<SinkRecord> records) {
         LOGGER.debug("CLICKHOUSE received records" + records.size());
         BufferedRecords br = new BufferedRecords();
-        for (SinkRecord sr: records) {
-            LOGGER.debug("SINK RECORD" + sr.toString());
-
+        for (SinkRecord record: records) {
+            new ClickHouseConverter().convert(record);
         }
+
     }
+
+
 
     @Override
     public void stop() {
