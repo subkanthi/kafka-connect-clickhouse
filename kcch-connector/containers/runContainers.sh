@@ -14,16 +14,16 @@ sleep 5
 
 # Activating binlog, using mariadb since mysql images are not supported in
 docker run --detach --name mysql -p 3306:3306 --env MARIADB_USER=user --env MARIADB_PASSWORD=secret --env MARIADB_ROOT_PASSWORD=root  arm64v8/mariadb:latest mysqld \
-                                                                                                                                                               --datadir=/var/lib/mysql \
-                                                                                                                                                               --user=mysql \
+                                                                                                                                                               --datadir=/var/lib/mysql \                                                                                                                                                          --user=mysql \
                                                                                                                                                                --server-id=1 \
-                                                                                                                                                               --log-bin=/var/lib/mysql/mysql-bin.log \
+# SET GLOBAL time_zone = '+3:00';                                                                                                                                                     --log-bin=/var/lib/mysql/mysql-bin.log \
                                                                                                                                                                --binlog_do_db=test
 # Set this in mysql prompt
 # set global binlog_format = ROW;
 
 # Run clickhouse local docker image
 docker run -d -p8123:8123 --name clickhouse --ulimit nofile=262144:262144 yandex/clickhouse-server
+docker run -p8123:8123 -d --name clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server -e"CLICKHOUSE_USER=admin" -e"CLICKHOUSE_PASSWORD=root" -e "CLICKHOUSE_DB=test"
 
 sleep 5
 

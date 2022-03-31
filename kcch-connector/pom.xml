@@ -368,7 +368,7 @@
         <dependency>
             <groupId>com.clickhouse</groupId>
             <!-- or clickhouse-grpc-client if you prefer gRPC -->
-            <artifactId>clickhouse-http-client</artifactId>
+            <artifactId>clickhouse-jdbc</artifactId>
             <version>0.3.2-patch7</version>
         </dependency>
 

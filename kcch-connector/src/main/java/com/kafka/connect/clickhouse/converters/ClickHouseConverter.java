@@ -2,9 +2,7 @@ package com.kafka.connect.clickhouse.converters;
 
 import com.kafka.connect.clickhouse.db.DbWriter;
 import com.kafka.connect.clickhouse.metadata.KafkaSchemaRecordType;
-import org.apache.kafka.connect.data.Field;
-import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.data.*;
 import org.apache.kafka.connect.sink.SinkRecord;
 
 import org.apache.kafka.connect.data.Struct;
@@ -18,9 +16,31 @@ import java.util.List;
 import java.util.Map;
 
 public class ClickHouseConverter implements AbstractConverter{
+
+    /**
+     *
+     */
+    public enum CDC_OPERATION {
+        // Sql updates
+        UPDATE("U"),
+        // Inserts
+        CREATE("C"),
+
+        DELETE("D");
+
+        private String operation;
+        CDC_OPERATION(String op) {
+            this.operation = op;
+        }
+    }
     @Override
     public Map<String, Object> convertKey(SinkRecord record) {
 
+        /**
+         * Struct{before=Struct{id=1,message=Hello from MySQL},
+         * after=Struct{id=1,message=Mysql update},source=Struct{version=1.8.1.Final,connector=mysql,
+         * name=local_mysql3,ts_ms=1648575279000,snapshot=false,db=test,table=test_hello2,server_id=1,file=binlog.000002,pos=4414,row=0},op=u,ts_ms=1648575279856}
+         */
         KafkaSchemaRecordType recordType = KafkaSchemaRecordType.KEY;
         Schema kafkaConnectSchema = recordType == KafkaSchemaRecordType.KEY ? record.keySchema() : record.valueSchema();
         Object kafkaConnectStruct = recordType == KafkaSchemaRecordType.KEY ? record.key() : record.value();
@@ -76,14 +96,27 @@ public class ClickHouseConverter implements AbstractConverter{
         return result;
     }
 
+    /**
+     * Primary functionality of parsing a CDC event in a SinkRecord.
+     * This checks the operation flag( if its 'C' or 'U')
+     * @param record
+     */
     public void convert(SinkRecord record) {
 
         Map<String, Object> convertedKey = convertKey(record);
         Map<String, Object> convertedValue = convertValue(record);
 
-        System.out.println("Converted Key");
-        System.out.println("Converted Value");
-
+        if(convertedValue.containsKey("op")) {
+            // Operation (u, c)
+            String operation = (String) convertedValue.get("op");
+            if (operation.equalsIgnoreCase(CDC_OPERATION.CREATE.operation)) {
+                // Inserts.
+            } else if(operation.equalsIgnoreCase(CDC_OPERATION.UPDATE.operation)) {
+                // Updates.
+            } else if(operation.equalsIgnoreCase(CDC_OPERATION.DELETE.operation)) {
+                // Deletes.
+            }
+        }
         if(convertedValue.containsKey("after")) {
             Struct afterValue = (Struct) convertedValue.get("after");
             List<Field> fields = afterValue.schema().fields();
@@ -91,8 +124,9 @@ public class ClickHouseConverter implements AbstractConverter{
 
             List<String> cols = new ArrayList<String>();
             List<Object> values = new ArrayList<Object>();
-            for(Field f: fields) {
+            List<Schema.Type> types = new ArrayList<Schema.Type>();
 
+            for(Field f: fields) {
                 System.out.println("Key" + f.name());
                 cols.add(f.name());
 
@@ -101,7 +135,12 @@ public class ClickHouseConverter implements AbstractConverter{
             }
 
             DbWriter writer = new DbWriter();
-            //writer.insert(record.topic(), String.join(' ', cols.), String.join(' ', values));
+            ArrayList<String> colList = new ArrayList<String>();
+            //colList.add("id");
+
+            ArrayList<String> valList = new ArrayList<String>();
+            //valList.add("One");
+            writer.insert(record.topic(), afterValue, fields);
 
         }
 

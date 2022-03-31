@@ -27,7 +27,7 @@ public class ClickHouseSinkTask extends SinkTask{
 
     @Override
     public String version() {
-        return null;
+        return "1.0.1";
     }
 
     @Override
