@@ -16,27 +16,63 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Class that abstracts all functionality
+ * related to interacting with Clickhouse DB.
+ */
 public class DbWriter {
     //ClickHouseNode server;
     ClickHouseConnection conn;
 
-
+    /**
+     * Constructor to create Clickhouse DB connection.
+     */
     public DbWriter() {
+        //ToDo: Read from Config
+        String url = "jdbc:ch://localhost/test";
+        String clientName = "Agent_1";
+        String userName = "admin";
+        String password = "root";
+
+        this.createConnection(url, clientName, userName, password);
+    }
+
+    /**
+     * Function to create Connection using the JDBC Driver
+     * @param url url with the JDBC format jdbc:ch://localhost/test
+     * @param clientName Client Name
+     * @param userName UserName
+     * @param password Password
+     */
+    public void createConnection(String url, String clientName, String userName, String password) {
         try {
-            String url = "jdbc:ch://localhost/test";
-            ClickHouseDataSource dataSource = new ClickHouseDataSource(url, new Properties());
-            this.conn = dataSource.getConnection("default", "password");
+            Properties properties = new Properties();
+            properties.setProperty("client_name", clientName);
+            ClickHouseDataSource dataSource = new ClickHouseDataSource(url, properties);
+
+            this.conn = dataSource.getConnection(userName, password);
         } catch(Exception e) {
-            // Error initializing connection.
+            System.out.println("Error creating SQL connection" + e);
         }
     }
 
-    private ClickHouseNode getConnection() {
+    /**
+     * Function to retrieve Clickhouse http client Connection
+     * @return
+     */
+    private ClickHouseNode getHttpConnection() {
         ClickHouseCredentials credentials = ClickHouseCredentials.fromUserAndPassword("admin", "root");
         return ClickHouseNode.builder().credentials(credentials).database("test").port(8123).host("localhost").build();
 
     }
 
+    /**
+     * Formatter for Raw Insert SQL query with placeholders for values
+     * with this format insert into <tablename> values(?, ?, ?, )
+     * @param tableName Table Name
+     * @param numFields Number of fields with placeholders
+     * @return
+     */
     public String getInsertQuery(String tableName, int numFields) {
         StringBuffer insertQuery = new StringBuffer().append("insert into ")
                 .append(tableName).append(" values(");
@@ -51,24 +87,25 @@ public class DbWriter {
         return insertQuery.toString();
     }
 
+    /**
+     * Function where the Kafka connect data types
+     * are mapped to Clickhouse data types and a batch insert is performed.
+     * @param table Table Name
+     * @param afterValue after Value (With Insert: before is always empty_
+     * @param fields Kafka connect fields
+     */
     public void insert(String table, Struct afterValue, List<Field> fields){
 
-        try {
-//            PreparedStatement ps = this.conn.prepareStatement(sql);
-//            for(Field f: fields) {
-//                ps.
-//
-//            }
-        } catch(Exception e) {
-
-        }
-        try (PreparedStatement ps = this.conn.prepareStatement("insert into mytable values(trim(?),?,?)")) {
+        table = "test";
+        String insertQueryTemplate = this.getInsertQuery(table, fields.size());
+        try (PreparedStatement ps = this.conn.prepareStatement(insertQueryTemplate)) {
 
             int index = 1;
             for(Field f: fields) {
                 Schema.Type fieldType = f.schema().type();
                 Object value = afterValue.get(f);
 
+                // Text columns
                 if(fieldType == Schema.Type.STRING) {
                     ps.setString(index, (String) value);
                 } else if(fieldType == Schema.INT8_SCHEMA.type() ||
@@ -78,33 +115,39 @@ public class DbWriter {
                 } else if(fieldType == Schema.FLOAT32_SCHEMA.type() ||
                             fieldType == Schema.FLOAT64_SCHEMA.type()) {
                     ps.setFloat(index, (Float) value);
-                } else if()
+                } else if(fieldType == Schema.BOOLEAN_SCHEMA.type()) {
+                    ps.setBoolean(index, (Boolean) value);
+                }
+                index++;
+
             }
-            ps.setString(1, "test"); // id
-            ps.setObject(2, LocalDateTime.now()); // timestamp
-            ps.setString(3, null); // description
             ps.addBatch(); // append parameters to the query
 
             ps.executeBatch(); // issue the composed query: insert into mytable values(...)(...)...(...)
         } catch(Exception e) {
-
+            System.out.println("insert Batch exception" + e);
         }
+    }
 
-        table = "test_hello2";
-        String insertQuery = MessageFormat.format("insert into {0} {1} values({2})",
-                table, "(id, message)", "1, 'hello'");
-//        if(this.server != null) {
-//            CompletableFuture<List<ClickHouseResponseSummary>> future = ClickHouseClient.send(this.server, insertQuery);
-//            try {
-//                future.get();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            } catch (ExecutionException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            // Error .
-//        }
+    /**
+     * Function to insert records using Http Connection.
+     */
+    public void insertUsingHttpConnection() {
 
+//        table = "test_hello2";
+//        String insertQuery = MessageFormat.format("insert into {0} {1} values({2})",
+//                table, "(id, message)", "1, 'hello'");
+////        if(this.server != null) {
+////            CompletableFuture<List<ClickHouseResponseSummary>> future = ClickHouseClient.send(this.server, insertQuery);
+////            try {
+////                future.get();
+////            } catch (InterruptedException e) {
+////                e.printStackTrace();
+////            } catch (ExecutionException e) {
+////                e.printStackTrace();
+////            }
+////        } else {
+////            // Error .
+////        }
     }
 }

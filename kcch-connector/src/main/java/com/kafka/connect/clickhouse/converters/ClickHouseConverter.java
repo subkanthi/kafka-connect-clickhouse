@@ -120,7 +120,6 @@ public class ClickHouseConverter implements AbstractConverter{
         if(convertedValue.containsKey("after")) {
             Struct afterValue = (Struct) convertedValue.get("after");
             List<Field> fields = afterValue.schema().fields();
-            System.out.println("DONE");
 
             List<String> cols = new ArrayList<String>();
             List<Object> values = new ArrayList<Object>();
@@ -135,11 +134,6 @@ public class ClickHouseConverter implements AbstractConverter{
             }
 
             DbWriter writer = new DbWriter();
-            ArrayList<String> colList = new ArrayList<String>();
-            //colList.add("id");
-
-            ArrayList<String> valList = new ArrayList<String>();
-            //valList.add("One");
             writer.insert(record.topic(), afterValue, fields);
 
         }
