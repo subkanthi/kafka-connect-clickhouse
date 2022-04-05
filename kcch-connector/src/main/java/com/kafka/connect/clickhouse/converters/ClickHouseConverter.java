@@ -54,16 +54,18 @@ public class ClickHouseConverter implements AbstractConverter{
             }
 //                    throw new ConversionConnectException("Only Map objects supported in absence of schema for " +
 //                            "record conversion to BigQuery format.");
-        }
-        if (kafkaConnectSchema.type() != Schema.Type.STRUCT) {
+        } else {
+            if (kafkaConnectSchema.type() != Schema.Type.STRUCT) {
 //                    throw new
 //                            ConversionConnectException("Top-level Kafka Connect schema must be of type 'struct'");
-        } else {
-            // Convert STRUCT
-            System.out.println("RECIEVED STRUCT");
-            result = convertStruct(kafkaConnectStruct, kafkaConnectSchema);
-        }
+            } else {
+                // Convert STRUCT
+                System.out.println("RECIEVED STRUCT");
+                result = convertStruct(kafkaConnectStruct, kafkaConnectSchema);
+            }
 
+
+        }
         return result;
     }
 
@@ -101,11 +103,12 @@ public class ClickHouseConverter implements AbstractConverter{
      * This checks the operation flag( if its 'C' or 'U')
      * @param record
      */
-    public void convert(SinkRecord record) {
+    public Struct convert(SinkRecord record) {
 
         Map<String, Object> convertedKey = convertKey(record);
         Map<String, Object> convertedValue = convertValue(record);
 
+        Struct afterRecord = null;
         if(convertedValue.containsKey("op")) {
             // Operation (u, c)
             String operation = (String) convertedValue.get("op");
@@ -118,8 +121,8 @@ public class ClickHouseConverter implements AbstractConverter{
             }
         }
         if(convertedValue.containsKey("after")) {
-            Struct afterValue = (Struct) convertedValue.get("after");
-            List<Field> fields = afterValue.schema().fields();
+            afterRecord = (Struct) convertedValue.get("after");
+            List<Field> fields = afterRecord.schema().fields();
 
             List<String> cols = new ArrayList<String>();
             List<Object> values = new ArrayList<Object>();
@@ -129,15 +132,13 @@ public class ClickHouseConverter implements AbstractConverter{
                 System.out.println("Key" + f.name());
                 cols.add(f.name());
 
-                System.out.println("Value"+ afterValue.get(f));
-                values.add(afterValue.get(f));
+                System.out.println("Value"+ afterRecord.get(f));
+                values.add(afterRecord.get(f));
             }
-
-            DbWriter writer = new DbWriter();
-            writer.insert(record.topic(), afterValue, fields);
 
         }
 
+        //ToDO: Remove the following code after evaluating
         try {
             byte[] rawJsonPayload = new JsonConverter().fromConnectData(record.topic(), record.valueSchema(), record.value());
             String stringPayload = new String(rawJsonPayload, StandardCharsets.UTF_8);
@@ -145,6 +146,8 @@ public class ClickHouseConverter implements AbstractConverter{
         } catch(Exception e) {
 
         }
+
+        return afterRecord;
     }
 
     private Map<String, Object> convertStruct(Object kafkaConnectObject, Schema kafkaConnectSchema) {

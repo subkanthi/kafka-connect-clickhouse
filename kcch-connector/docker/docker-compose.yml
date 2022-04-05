@@ -16,6 +16,7 @@ services:
     image: yandex/clickhouse-server
     ports:
       - "8123:8123"
+      - "9000:9000"
     ulimits:
       nofile:
         soft: "262144"
@@ -24,6 +25,10 @@ services:
       - CLICKHOUSE_USER=admin
       - CLICKHOUSE_PASSWORD=root
       - CLICKHOUSE_DB=test
+    depends_on:
+      - "kafka"
+    volumes:
+      - ./init_clickhouse.sql:/docker-entrypoint-initdb.d/init_clickhouse.sql
   mysql:
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
@@ -31,5 +36,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: test
+    depends_on:
+      - "clickhouse"
     ports:
       - "3306:3306"
+    volumes:
+      - ./mysql_db.sql:/docker-entrypoint-initdb.d/mysql_db.sql
+#      - ./load_employees.dump:/docker-entrypoint-initdb.d/load_employees.sql
